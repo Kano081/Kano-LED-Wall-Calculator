@@ -9,6 +9,7 @@
 input[readonly]{background:#1a2b3e;color:#83d2ff;-webkit-text-fill-color:#83d2ff;border-style:dashed}.mixed-help{color:#9ad9ff;margin:9px 0 12px}
 .row-card{border:1px solid #455b74;border-radius:12px;padding:11px;margin-top:11px;background:#122037}.row-card h4{font-size:13px;margin:0 0 10px;color:#fff}.row-card .cols{margin-top:9px}.row-card select{height:46px;font-size:14px}.row-card input{height:46px;font-size:16px}.row-summary{font-size:12px;color:#88d7fb;margin-top:9px}.rowActions{display:flex;gap:8px;margin-top:12px}.rowActions button{flex:1;min-width:0;padding:12px 5px;background:#1c3a54;color:#f5f8ff;border:1px solid #487b9b;border-radius:10px;font-size:12px;font-weight:700}#wall.mixed-wall svg{display:block;width:100%;height:auto;max-height:480px}
 .row-card.row-selected{border-color:#78d9ff;background:#183e56;box-shadow:0 0 0 2px #78d9ff60}.row-card{scroll-margin-top:24px}#wall.mixed-wall svg [data-row]{cursor:pointer;outline:none}#wall.mixed-wall svg [data-row]:focus rect{stroke:#fff;stroke-width:15}#wall.mixed-wall svg [data-row]:hover rect{filter:brightness(1.22)}.preview-tip{display:none;margin-top:7px;font-size:12px;color:#83d2ff}.preview-tip.visible{display:block}
+.axis-head{display:flex;gap:8px;margin-bottom:10px}.axis-head button{flex:1;padding:11px 5px;border:1px solid #54718b;border-radius:10px;background:#132b40;color:#e9f4ff;font-weight:700;font-size:12px}.axis-head button.active{border-color:#77d9ff;background:#1d506d}.axis-layout{display:grid;grid-template-columns:27px minmax(0,1fr);grid-template-rows:30px auto;gap:3px;align-items:stretch}.top-markers{grid-column:2;grid-row:1;position:relative;min-height:30px}.side-markers{grid-column:1;grid-row:2;position:relative;min-width:27px}.axis-layout #wall{grid-column:2;grid-row:2;width:100%;max-width:none}.axis-dot{position:absolute;background:#274d67;border:1px solid #8ad9ff;border-radius:50%;width:20px;height:20px;color:#fff;font-size:10px;font-weight:800;padding:0;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);cursor:pointer}.axis-dot.active{background:#d2f5ff;color:#062235;box-shadow:0 0 0 3px #44bce05c}.row-card.row-selected{border-color:#78d9ff;background:#183e56;box-shadow:0 0 0 2px #78d9ff60}#wall.mixed-wall svg [data-col]{cursor:pointer}#wall.mixed-wall svg [data-col]:hover rect{filter:brightness(1.25)}.preview-tip.visible{display:block}
 </style></head><body><main>
 <header><div class="kicker">Kano · Veranstaltungstechnik</div><h1>LED Wall Calculator</h1><p>Modulanzahl und Pixelauflösung eingeben – alle vier Werte sofort ablesen.</p></header>
 <section class="panel"><h2>01 / LED-Wand</h2><div class="mode-switch"><button type="button" id="modeCount" class="active" aria-pressed="true">Module zählen</button><button type="button" id="modeMeters" aria-pressed="false">Wandmaße</button><button type="button" id="modeMixed" aria-pressed="false">Gemischte Reihen</button></div><div id="countInputs" class="cols"><div><label for="modulesH">Module Breite ↔</label><input id="modulesH" type="number" min="1" step="1" inputmode="numeric" value="14"></div><div><label for="modulesV">Module Höhe ↕</label><input id="modulesV" type="number" min="1" step="1" inputmode="numeric" value="8"></div></div><div id="meterInputs" class="hidden"><div class="cols"><div><label for="wallMetersH">Wandbreite (m)</label><input id="wallMetersH" type="number" inputmode="decimal" min="0.01" step="any" value="8"></div><div><label for="wallMetersV">Wandhöhe (m)</label><input id="wallMetersV" type="number" inputmode="decimal" min="0.01" step="any" value="4.5"></div></div><div class="subhead">Physische Größe eines LED-Moduls</div><div class="cols"><div><label for="moduleMmH">Modulbreite (mm)</label><input id="moduleMmH" type="number" inputmode="decimal" min="1" step="any" value="500"></div><div><label for="moduleMmV">Modulhöhe (mm)</label><input id="moduleMmV" type="number" inputmode="decimal" min="1" step="any" value="500"></div></div><p class="helper">500 × 500 mm sind nur Beispielwerte – bitte die echten Modulmaße einsetzen.</p><div id="moduleInfo" class="module-info">16 × 9 Module</div><div id="meterWarning" class="warning"></div></div><div id="mixedInputs" class="hidden">
@@ -17,11 +18,11 @@ input[readonly]{background:#1a2b3e;color:#83d2ff;-webkit-text-fill-color:#83d2ff
 <div class="cols"><div><label for="mixedWallW">Breite (m)</label><input id="mixedWallW" type="number" min="0.01" step="any" inputmode="decimal" value="8"></div>
 <div><label for="mixedWallH">Höhe (m)</label><input id="mixedWallH" type="number" min="0.01" step="any" inputmode="decimal" value="4.5"></div></div>
 <p class="helper">Beim Ändern der Wandmaße wird das Raster zunächst neu mit Standardmodulen 500 × 500 mm / 128 × 128 px aufgebaut.</p></div>
-<div class="group-card"><h3>Modulreihen – oben nach unten</h3><p class="helper">Pro horizontaler Reihe nur ein Modultyp. Standard: 500 × 500 mm, 128 × 128 px.</p>
+<div class="axis-head"><button type="button" id="axisRows" class="active">↔ Horizontale Reihen</button><button type="button" id="axisCols">↕ Vertikale Spalten</button></div><p id="axisNote" class="helper">Die beiden Anordnungen werden getrennt bearbeitet. Beim Wechsel wird die andere Anordnung angezeigt.</p><div id="rowSection" class="group-card"><h3>Modulreihen – oben nach unten</h3><p class="helper">Pro horizontaler Reihe nur ein Modultyp. Standard: 500 × 500 mm, 128 × 128 px.</p>
 <div id="rowEditor"></div>
 <div class="rowActions"><button type="button" id="addRow">+ Reihe hinzufügen</button><button type="button" id="removeRow">Letzte Reihe entfernen</button></div>
-</div><div id="mixedInfo" class="module-info"></div><p id="mixedError" class="warning error-note" role="alert"></p>
-</div><div class="preview"><div id="wall" style="--cols:14;--rows:8"></div><div id="wallLabel">14 × 8 Module</div><div id="previewTip" class="preview-tip">Tippe auf eine Reihe, um direkt zu ihren Einstellungen zu springen.</div><div id="wallLegend"><span><span class="legend-swatch legend-a"></span>Bereich A (oben)</span><span><span class="legend-swatch legend-b"></span>Bereich B (unten)</span></div></div></section>
+</div><div id="colSection" class="group-card hidden"><h3>Modulspalten – links nach rechts</h3><p class="helper">Jede Spalte hat einen Modultyp über die gesamte Höhe.</p><div id="colEditor"></div><div class="rowActions"><button type="button" id="addCol">+ Spalte hinzufügen</button><button type="button" id="removeCol">Letzte Spalte entfernen</button></div></div><div id="mixedInfo" class="module-info"></div><p id="mixedError" class="warning error-note" role="alert"></p>
+</div><div class="preview"><div id="axisLayout" class="axis-layout"><div id="topMarkers" class="top-markers hidden"></div><div id="sideMarkers" class="side-markers hidden"></div><div id="wall" style="--cols:14;--rows:8"></div></div><div id="wallLabel">14 × 8 Module</div><div id="previewTip" class="preview-tip">Tippe auf eine Reihe, um direkt zu ihren Einstellungen zu springen.</div><div id="wallLegend"><span><span class="legend-swatch legend-a"></span>Bereich A (oben)</span><span><span class="legend-swatch legend-b"></span>Bereich B (unten)</span></div></div></section>
 <section id="resolutionPanel" class="panel"><h2>02 / Auflösung pro Modul</h2><label for="preset">Pixelmaße (Breite × Höhe)</label><select id="preset"><option value="128x128">128 × 128 px</option><option value="64x64">64 × 64 px</option><option value="96x96">96 × 96 px</option><option value="128x64">128 × 64 px</option><option value="128x256">128 × 256 px</option><option value="192x192">192 × 192 px</option><option value="256x128">256 × 128 px</option><option value="256x256">256 × 256 px</option><option value="custom">Eigene Pixelmaße</option></select><div class="cols fieldrow"><div><label for="pixelsH">Pixelbreite / Modul</label><input id="pixelsH" type="number" min="1" step="1" inputmode="numeric" value="128"></div><div><label for="pixelsV">Pixelhöhe / Modul</label><input id="pixelsV" type="number" min="1" step="1" inputmode="numeric" value="128"></div></div><p class="helper">Die Pixelwerte können auch manuell geändert werden.</p><div id="error" class="error" role="alert">Bitte überall positive ganze Zahlen eingeben.</div></section>
 <section class="panel"><h2>03 / Ergebnisse</h2><div class="result-grid" aria-live="polite">
 <div class="result-box"><div class="result-label">H</div><div class="result-value"><span id="valueH">1792</span> <small>px</small></div><div id="formulaH" class="result-formula">14 × 128</div></div>
@@ -30,7 +31,7 @@ input[readonly]{background:#1a2b3e;color:#83d2ff;-webkit-text-fill-color:#83d2ff
 <div class="result-box"><div class="result-label">V-POS</div><div class="result-value"><span id="valueVP">512</span> <small>px</small></div><div id="formulaVP" class="result-formula">1024 ÷ 2</div></div></div><p class="note">H-POS und V-POS werden nach deiner Formel als halbe Wandauflösung berechnet. Die benötigte Position kann je nach Analog-Way-Konfiguration abweichen.</p></section><footer>Keine Anmeldung · Keine Datenübertragung</footer></main>
 <script>(function(){
 'use strict';
-var mode='count',rows=[];
+var mode='count',rows=[],cols=[],axis='rows',selectedRow=-1,selectedCol=-1;
 function el(id){return document.getElementById(id)}
 function whole(id){var s=el(id).value.trim();return /^\d+$/.test(s)&&Number.isSafeInteger(Number(s))&&Number(s)>0?Number(s):null}
 function positive(id){var s=el(id).value.trim().replace(',','.');var n=Number(s);return s!==''&&Number.isFinite(n)&&n>0?n:null}
@@ -38,12 +39,13 @@ function display(id,v){el(id).textContent=String(v)}
 function error(message){el('error').textContent=message;el('error').style.display='block'}
 function clearResults(){['valueH','valueV','valueHP','valueVP'].forEach(function(id){display(id,'—')});['formulaH','formulaV','formulaHP','formulaVP'].forEach(function(id){display(id,'')})}
 function defaultRow(){return {w:500,h:500,pw:128,ph:128}}
+function defaultCol(){return {w:500,h:500,pw:128,ph:128}}
 function initRows(){
 var h=positive('mixedWallH');
 if(h===null){rows=[];renderRowEditor();calculate();return}
 var n=h*1000/500;
 rows=Array.from({length:Math.min(80,Math.max(1,Math.floor(n)))},defaultRow);
-renderRowEditor();calculate()
+cols=Array.from({length:Math.min(80,Math.max(1,Math.floor((positive('mixedWallW')||0)*2)))},defaultCol);renderRowEditor();renderColEditor();calculate()
 }
 function rowPreset(row){
 if(row.w===500&&row.h===500&&row.pw===128&&row.ph===128)return 'standard';
@@ -88,10 +90,81 @@ card.appendChild(count);editor.appendChild(card);
 });
 el('removeRow').disabled=rows.length<=1;el('addRow').disabled=rows.length>=80
 }
+
+function renderColEditor(){
+var editor=el('colEditor');editor.replaceChildren();
+cols.forEach(function(col,index){
+var card=createControl('div',{class:'row-card',id:'colCard'+index});
+card.appendChild(createControl('h4',{},'Spalte '+(index+1)));
+var selector=createControl('select',{id:'colPreset'+index});
+[['standard','Standard · 500 × 500'],['wide','Breit · 1000 × 500'],['tall','Hoch · 500 × 1000'],['custom','Eigene Modulmaße']].forEach(function(item){selector.appendChild(createControl('option',{value:item[0]},item[1]))});
+selector.value=col.w===500&&col.h===1000&&col.pw===128&&col.ph===256?'tall':rowPreset(col);
+if(selector.value==='short')selector.value='custom';
+labeledControl(card,'Modultyp',selector);
+selector.addEventListener('change',function(){
+if(selector.value==='standard')cols[index]=defaultCol();
+if(selector.value==='wide')cols[index]={w:1000,h:500,pw:256,ph:128};
+if(selector.value==='tall')cols[index]={w:500,h:1000,pw:128,ph:256};
+renderColEditor();calculate()
+});
+var physical=createControl('div',{class:'cols'}),pixels=createControl('div',{class:'cols'});
+[['w','Modulbreite (mm)',physical],['h','Modulhöhe (mm)',physical],['pw','Pixelbreite',pixels],['ph','Pixelhöhe',pixels]].forEach(function(item){
+var input=createControl('input',{id:'col'+index+item[0],type:'number',min:'1',step:'1',inputmode:'numeric',value:String(col[item[0]])});
+input.addEventListener('input',function(){var v=Number(input.value);col[item[0]]=input.value!==''&&Number.isSafeInteger(v)&&v>0?v:0;selector.value='custom';calculate()});
+labeledControl(item[2],item[1],input)
+});
+card.append(physical,pixels,createControl('div',{class:'row-summary',id:'colSummary'+index}));
+editor.appendChild(card)
+});
+el('removeCol').disabled=cols.length<=1;el('addCol').disabled=cols.length>=80
+}
+function setAxis(next){
+axis=next;
+el('rowSection').classList.toggle('hidden',axis!=='rows');
+el('colSection').classList.toggle('hidden',axis!=='cols');
+el('axisRows').classList.toggle('active',axis==='rows');
+el('axisCols').classList.toggle('active',axis==='cols');
+calculate()
+}
+function jumpToCol(index){
+if(axis!=='cols')setAxis('cols');
+selectedCol=index;selectedRow=-1;
+var card=el('colCard'+index);if(!card)return;
+Array.from(el('colEditor').children).forEach(function(node){node.classList.remove('row-selected')});
+card.classList.add('row-selected');card.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function addAxisDots(container,segments,isColumn,handler,selected){
+container.replaceChildren();
+var total=segments.reduce(function(sum,n){return sum+n},0),acc=0;
+segments.forEach(function(n,index){
+if(n<=0)return;
+var btn=createControl('button',{type:'button',class:'axis-dot'+(selected===index?' active':''),'aria-label':(isColumn?'Spalte ':'Reihe ')+(index+1)+' bearbeiten'},String(index+1));
+btn.style[isColumn?'left':'top']=String(((acc+n/2)/total)*100)+'%';
+btn.style[isColumn?'top':'left']=isColumn?'15px':'13px';
+btn.addEventListener('click',function(){handler(index)});
+container.appendChild(btn);acc+=n
+})
+}
+function renderDots(width,height){
+var top=el('topMarkers'),side=el('sideMarkers');
+if(axis==='rows'){
+var step=500,number=Math.max(1,Math.min(80,Math.floor(width/step)));
+addAxisDots(top,Array.from({length:number},function(){return step}),true,function(i){jumpToCol(i)},selectedCol);
+addAxisDots(side,rows.map(function(r){return Math.max(1,r.h)}),false,function(i){jumpToRow(i)},selectedRow)
+}else{
+addAxisDots(top,cols.map(function(c){return Math.max(1,c.w)}),true,function(i){jumpToCol(i)},selectedCol);
+var nr=Math.max(1,Math.min(80,Math.floor(height/500)));
+addAxisDots(side,Array.from({length:nr},function(){return 500}),false,function(i){jumpToRow(i)},selectedRow)
+}
+top.classList.remove('hidden');side.classList.remove('hidden')
+}
+
 function resetPreview(){
-var wall=el('wall');wall.classList.remove('mixed-wall');wall.replaceChildren();el('wallLegend').classList.remove('visible');el('previewTip').classList.remove('visible')
+var wall=el('wall');wall.classList.remove('mixed-wall');wall.replaceChildren();el('wallLegend').classList.remove('visible');el('previewTip').classList.remove('visible');el('topMarkers').classList.add('hidden');el('sideMarkers').classList.add('hidden')
 }
 function jumpToRow(index){
+if(axis!=='rows')setAxis('rows');
+selectedRow=index;selectedCol=-1;
 var card=el('rowCard'+index);
 if(!card)return;
 Array.from(el('rowEditor').children).forEach(function(node){node.classList.remove('row-selected')});
@@ -102,13 +175,13 @@ function renderMixedPreview(targetW,invalid){
 var wall=el('wall');wall.classList.add('mixed-wall');
 wall.style.removeProperty('aspect-ratio');wall.style.removeProperty('--cols');wall.style.removeProperty('--rows');
 el('wallLegend').classList.remove('visible');el('previewTip').classList.add('visible');
-var actualHeight=rows.reduce(function(sum,row){return sum+Math.max(0,row.h)},0);
+var actualHeight=axis==='rows'?rows.reduce(function(sum,row){return sum+Math.max(0,row.h)},0):(positive('mixedWallH')||1)*1000;
 var w=Math.max(1,targetW*1000),h=Math.max(1,actualHeight);
 var ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');
 svg.setAttribute('viewBox','0 0 '+w+' '+h);svg.setAttribute('preserveAspectRatio','xMidYMid meet');
 svg.setAttribute('role','img');svg.setAttribute('aria-label','LED-Wand mit '+rows.length+' individuell konfigurierten horizontalen Modulreihen');
 var y=0,drawn=0;
-rows.forEach(function(row,index){
+(axis==='rows'?rows:[]).forEach(function(row,index){
 if(!(row.w>0&&row.h>0)){return}
 var group=document.createElementNS(ns,'g');
 group.setAttribute('data-row',String(index));
@@ -131,7 +204,18 @@ group.addEventListener('keydown',function(event){if(event.key==='Enter'||event.k
 svg.appendChild(group);
 y+=row.h
 });
+if(axis==='cols'){
+var x=0,limit=(positive('mixedWallH')||0)*1000;
+cols.forEach(function(col,index){
+if(!(col.w>0&&col.h>0))return;
+var group=document.createElementNS(ns,'g');group.setAttribute('data-col',String(index));
+var n=Math.min(500,Math.floor(limit/col.h));
+for(var j=0;j<n;j++){var rect=document.createElementNS(ns,'rect');rect.setAttribute('x',String(x));rect.setAttribute('y',String(j*col.h));rect.setAttribute('width',String(col.w));rect.setAttribute('height',String(col.h));rect.setAttribute('fill',index%2===0?'#397aa6':'#187d70');rect.setAttribute('stroke','#b0e5ff');rect.setAttribute('stroke-width',String(Math.max(1,Math.min(col.w,col.h)*.012)));group.appendChild(rect)}
+group.addEventListener('click',function(){jumpToCol(index)});svg.appendChild(group);x+=col.w
+})
+}
 wall.replaceChildren(svg);
+renderDots(w,h)
 }
 function calculate(){
 resetPreview();el('meterWarning').style.display='none';el('mixedError').style.display='none';el('error').style.display='none';
@@ -140,6 +224,31 @@ if(mode==='mixed'){
 var width=positive('mixedWallW'),height=positive('mixedWallH');
 if(width===null||height===null||!rows.length){error('Bitte gültige Wandmaße eingeben.');clearResults();return}
 var targetWidth=width*1000,targetHeight=height*1000;
+if(axis==='cols'){
+var problems=[],sumWidth=0,verticalPx=null,pitch=null,sumHPx=0,totalModules=0;
+cols.forEach(function(col,index){
+var n=targetHeight/col.h,valid=Number.isSafeInteger(Math.round(n))&&n>0&&Math.abs(n-Math.round(n))<1e-7;
+var label=el('colSummary'+index);
+if(label)label.textContent=valid?Math.round(n)+' Module übereinander':'Höhe passt nicht: '+Number(n.toFixed(3))+' Module';
+if(!(col.w>0&&col.h>0&&col.pw>0&&col.ph>0&&[col.w,col.h,col.pw,col.ph].every(Number.isSafeInteger))){problems.push('Spalte '+(index+1)+': ungültige Werte');return}
+if(!valid)problems.push('Spalte '+(index+1)+': Höhe nicht durch Module teilbar');
+var vertical=valid?Math.round(n)*col.ph:null;
+if(verticalPx!==null&&vertical!==null&&verticalPx!==vertical)problems.push('Spalte '+(index+1)+': Pixelhöhe passt nicht');
+if(verticalPx===null&&vertical!==null)verticalPx=vertical;
+var pX=col.w/col.pw,pY=col.h/col.ph;
+if(Math.abs(pX-pY)>1e-7)problems.push('Spalte '+(index+1)+': Pixelpitch X/Y ungleich');
+if(pitch!==null&&Math.abs(pX-pitch)>1e-7)problems.push('Spalte '+(index+1)+': anderer Pixelpitch');
+if(pitch===null)pitch=pX;
+sumWidth+=col.w;sumHPx+=col.pw;totalModules+=valid?Math.round(n):0
+});
+if(Math.abs(sumWidth-targetWidth)>1e-7)problems.push('Gesamtbreite '+(sumWidth/1000)+' m statt '+width+' m');
+renderMixedPreview(width,problems.length>0);
+display('mixedInfo',cols.length+' Spalten · '+totalModules+' Module · '+(sumWidth/1000)+' m Breite');
+if(problems.length){el('mixedError').textContent=problems.join(' · ');el('mixedError').style.display='block';clearResults();display('wallLabel','Prüfung: Modulspalten passen noch nicht vollständig');return}
+hpx=sumHPx;vpx=verticalPx;
+if(!Number.isSafeInteger(hpx)||!Number.isSafeInteger(vpx)){error('Pixelwerte zu groß');clearResults();return}
+label=width+' × '+height+' m · '+hpx+' × '+vpx+' px';formulaH=cols.map(function(c){return c.pw}).join(' + ');formulaV='Je Spalte '+vpx+' px';
+}else{
 var problems=[],totalHeight=0,expectedPx=null,expectedPitch=null,totalPxH=0,totalModules=0;
 rows.forEach(function(row,index){
 var count=targetWidth/row.w;
@@ -166,6 +275,7 @@ if(problems.length){el('mixedError').textContent=problems.join(' · ');el('mixed
 hpx=expectedPx;vpx=totalPxH;
 if(!Number.isSafeInteger(hpx)||!Number.isSafeInteger(vpx)){error('Pixelwerte sind zu groß.');clearResults();return}
 label=width+' × '+height+' m · '+hpx+' × '+vpx+' px';formulaH='Je Reihe '+hpx+' px';formulaV=rows.map(function(r){return r.ph}).join(' + ');
+}
 }else{
 var ph=whole('pixelsH'),pv=whole('pixelsV');if(ph===null||pv===null){error('Bitte gültige positive ganze Pixelzahlen eingeben.');clearResults();return}
 if(mode==='count'){mh=whole('modulesH');mv=whole('modulesV')}
@@ -210,6 +320,9 @@ el('modeMeters').addEventListener('click',function(){setMode('meters')});
 el('modeMixed').addEventListener('click',function(){setMode('mixed')});
 el('addRow').addEventListener('click',function(){if(rows.length<80){rows.push(defaultRow());renderRowEditor();calculate()}});
 el('removeRow').addEventListener('click',function(){if(rows.length>1){rows.pop();renderRowEditor();calculate()}});
+el('axisRows').addEventListener('click',function(){setAxis('rows')});el('axisCols').addEventListener('click',function(){setAxis('cols')});
+el('addCol').addEventListener('click',function(){if(cols.length<80){cols.push(defaultCol());renderColEditor();calculate()}});
+el('removeCol').addEventListener('click',function(){if(cols.length>1){cols.pop();renderColEditor();calculate()}});
 ['mixedWallW','mixedWallH'].forEach(function(id){el(id).addEventListener('input',initRows)});
 el('preset').addEventListener('change',function(){if(this.value!=='custom'){var p=this.value.split('x');el('pixelsH').value=p[0];el('pixelsV').value=p[1]}calculate()});
 ['modulesH','modulesV','wallMetersH','wallMetersV','moduleMmH','moduleMmV','pixelsH','pixelsV'].forEach(function(id){el(id).addEventListener('input',function(){
