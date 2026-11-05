@@ -22,7 +22,7 @@ input[readonly]{background:#1a2b3e;color:#83d2ff;-webkit-text-fill-color:#83d2ff
 <div id="rowEditor"></div>
 <div class="rowActions"><button type="button" id="addRow">+ Reihe hinzufügen</button><button type="button" id="removeRow">Letzte Reihe entfernen</button></div>
 </div><div id="colSection" class="group-card hidden"><h3>Modulspalten – links nach rechts</h3><p class="helper">Jede Spalte hat einen Modultyp über die gesamte Höhe.</p><div id="colEditor"></div><div class="rowActions"><button type="button" id="addCol">+ Spalte hinzufügen</button><button type="button" id="removeCol">Letzte Spalte entfernen</button></div></div><div id="mixedInfo" class="module-info"></div><p id="mixedError" class="warning error-note" role="alert"></p>
-</div><div class="preview"><div id="axisLayout" class="axis-layout"><div id="topMarkers" class="top-markers hidden"></div><div id="sideMarkers" class="side-markers hidden"></div><div id="wall" style="--cols:14;--rows:8"></div></div><div id="wallLabel">14 × 8 Module</div><div id="previewTip" class="preview-tip">Tippe auf eine Reihe, um direkt zu ihren Einstellungen zu springen.</div><div id="wallLegend"><span><span class="legend-swatch legend-a"></span>Bereich A (oben)</span><span><span class="legend-swatch legend-b"></span>Bereich B (unten)</span></div></div></section>
+</div><div class="preview"><div id="axisLayout" class="axis-layout"><div id="topMarkers" class="top-markers hidden"></div><div id="sideMarkers" class="side-markers hidden"></div><div id="wall" style="--cols:14;--rows:8"></div></div><div id="wallLabel">14 × 8 Module</div><div id="previewTip" class="preview-tip">Punkte links: horizontale Reihen · Punkte oben: vertikale Spalten. Tippen öffnet die jeweiligen Einstellungen.</div><div id="wallLegend"><span><span class="legend-swatch legend-a"></span>Bereich A (oben)</span><span><span class="legend-swatch legend-b"></span>Bereich B (unten)</span></div></div></section>
 <section id="resolutionPanel" class="panel"><h2>02 / Auflösung pro Modul</h2><label for="preset">Pixelmaße (Breite × Höhe)</label><select id="preset"><option value="128x128">128 × 128 px</option><option value="64x64">64 × 64 px</option><option value="96x96">96 × 96 px</option><option value="128x64">128 × 64 px</option><option value="128x256">128 × 256 px</option><option value="192x192">192 × 192 px</option><option value="256x128">256 × 128 px</option><option value="256x256">256 × 256 px</option><option value="custom">Eigene Pixelmaße</option></select><div class="cols fieldrow"><div><label for="pixelsH">Pixelbreite / Modul</label><input id="pixelsH" type="number" min="1" step="1" inputmode="numeric" value="128"></div><div><label for="pixelsV">Pixelhöhe / Modul</label><input id="pixelsV" type="number" min="1" step="1" inputmode="numeric" value="128"></div></div><p class="helper">Die Pixelwerte können auch manuell geändert werden.</p><div id="error" class="error" role="alert">Bitte überall positive ganze Zahlen eingeben.</div></section>
 <section class="panel"><h2>03 / Ergebnisse</h2><div class="result-grid" aria-live="polite">
 <div class="result-box"><div class="result-label">H</div><div class="result-value"><span id="valueH">1792</span> <small>px</small></div><div id="formulaH" class="result-formula">14 × 128</div></div>
@@ -131,7 +131,7 @@ if(axis!=='cols')setAxis('cols');
 selectedCol=index;selectedRow=-1;
 var card=el('colCard'+index);if(!card)return;
 Array.from(el('colEditor').children).forEach(function(node){node.classList.remove('row-selected')});
-card.classList.add('row-selected');card.scrollIntoView({behavior:'smooth',block:'start'});
+card.classList.add('row-selected');renderDots((positive('mixedWallW')||1)*1000,(positive('mixedWallH')||1)*1000);card.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function addAxisDots(container,segments,isColumn,handler,selected){
 container.replaceChildren();
@@ -169,6 +169,7 @@ var card=el('rowCard'+index);
 if(!card)return;
 Array.from(el('rowEditor').children).forEach(function(node){node.classList.remove('row-selected')});
 card.classList.add('row-selected');
+renderDots((positive('mixedWallW')||1)*1000,(positive('mixedWallH')||1)*1000);
 card.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function renderMixedPreview(targetW,invalid){
