@@ -13,7 +13,7 @@ input[readonly]{background:#1a2b3e;color:#83d2ff;-webkit-text-fill-color:#83d2ff
 .history-controls{display:flex;gap:9px;margin:-3px 0 15px}.history-controls button{flex:1;background:#102b42;border:1px solid #4b7595;border-radius:10px;padding:10px 8px;color:#ebf7ff;font:inherit;font-size:13px;font-weight:750}.history-controls button:disabled{opacity:.38}.history-caption{font-size:11px;color:#bfd0e2;margin:-8px 0 13px}
 </style></head><body><main>
 <header><div class="kicker">Kano · Veranstaltungstechnik</div><h1>LED Wall Calculator</h1><p>Modulanzahl und Pixelauflösung eingeben – alle vier Werte sofort ablesen.</p></header>
-<section class="panel"><h2>01 / LED-Wand</h2><div class="mode-switch"><button type="button" id="modeCount" class="active" aria-pressed="true">Module zählen</button><button type="button" id="modeMeters" aria-pressed="false">Wandmaße</button><button type="button" id="modeMixed" aria-pressed="false">Gemischte Reihen</button></div><div class="history-controls"><button type="button" id="undoButton" disabled>↶ Rückgängig</button><button type="button" id="redoButton" disabled>↷ Wiederholen</button></div><p class="history-caption">Eingaben und gelöschte Reihen/Spalten lassen sich zurückholen.</p><div id="countInputs" class="cols"><div><label for="modulesH">Module Breite ↔</label><input id="modulesH" type="number" min="1" step="1" inputmode="numeric" value="14"></div><div><label for="modulesV">Module Höhe ↕</label><input id="modulesV" type="number" min="1" step="1" inputmode="numeric" value="8"></div></div><div id="meterInputs" class="hidden"><div class="cols"><div><label for="wallMetersH">Wandbreite (m)</label><input id="wallMetersH" type="number" inputmode="decimal" min="0.01" step="any" value="8"></div><div><label for="wallMetersV">Wandhöhe (m)</label><input id="wallMetersV" type="number" inputmode="decimal" min="0.01" step="any" value="4.5"></div></div><div class="subhead">Physische Größe eines LED-Moduls</div><div class="cols"><div><label for="moduleMmH">Modulbreite (mm)</label><input id="moduleMmH" type="number" inputmode="decimal" min="1" step="any" value="500"></div><div><label for="moduleMmV">Modulhöhe (mm)</label><input id="moduleMmV" type="number" inputmode="decimal" min="1" step="any" value="500"></div></div><p class="helper">500 × 500 mm sind nur Beispielwerte – bitte die echten Modulmaße einsetzen.</p><div id="moduleInfo" class="module-info">16 × 9 Module</div><div id="meterWarning" class="warning"></div></div><div id="mixedInputs" class="hidden">
+<section class="panel"><h2>01 / LED-Wand</h2><div class="mode-switch"><button type="button" id="modeCount" class="active" aria-pressed="true">Module zählen</button><button type="button" id="modeMeters" aria-pressed="false">Wandmaße</button><button type="button" id="modeMixed" aria-pressed="false">Gemischte Reihen</button></div><div class="history-controls"><button type="button" id="undoButton" disabled>↶ Rückgängig</button><button type="button" id="redoButton" disabled>↷ Wiederholen</button></div><p class="history-caption">Rückgängig / Wiederholen · Der letzte Stand wird auf diesem Gerät gespeichert.</p><p id="saveStatus" class="history-caption" role="status"></p><div id="countInputs" class="cols"><div><label for="modulesH">Module Breite ↔</label><input id="modulesH" type="number" min="1" step="1" inputmode="numeric" value="14"></div><div><label for="modulesV">Module Höhe ↕</label><input id="modulesV" type="number" min="1" step="1" inputmode="numeric" value="8"></div></div><div id="meterInputs" class="hidden"><div class="cols"><div><label for="wallMetersH">Wandbreite (m)</label><input id="wallMetersH" type="number" inputmode="decimal" min="0.01" step="any" value="8"></div><div><label for="wallMetersV">Wandhöhe (m)</label><input id="wallMetersV" type="number" inputmode="decimal" min="0.01" step="any" value="4.5"></div></div><div class="subhead">Physische Größe eines LED-Moduls</div><div class="cols"><div><label for="moduleMmH">Modulbreite (mm)</label><input id="moduleMmH" type="number" inputmode="decimal" min="1" step="any" value="500"></div><div><label for="moduleMmV">Modulhöhe (mm)</label><input id="moduleMmV" type="number" inputmode="decimal" min="1" step="any" value="500"></div></div><p class="helper">500 × 500 mm sind nur Beispielwerte – bitte die echten Modulmaße einsetzen.</p><div id="moduleInfo" class="module-info">16 × 9 Module</div><div id="meterWarning" class="warning"></div></div><div id="mixedInputs" class="hidden">
 <p>Die Wandmaße des Kunden bestimmen das Ausgangsraster. Danach kannst du jede horizontale Reihe separat anpassen.</p>
 <div class="group-card"><h3>Wandmaße des Kunden</h3>
 <div class="cols"><div><label for="mixedWallW">Breite (m)</label><input id="mixedWallW" type="number" min="0.01" step="any" inputmode="decimal" value="8"></div>
@@ -344,7 +344,8 @@ el('preset').addEventListener('change',function(){if(this.value!=='custom'){var 
 if(id==='pixelsH'||id==='pixelsV'){var preset=el('pixelsH').value+'x'+el('pixelsV').value;var options=Array.from(el('preset').options).map(function(o){return o.value});el('preset').value=options.indexOf(preset)>=0?preset:'custom'}
 calculate()
 })});
-var historyPast=[],historyFuture=[],isRestoring=false,lastEdit=null;
+var historyPast=[],historyFuture=[],isRestoring=false,lastEdit=null,stableState=null;
+var STORAGE_KEY='kano-led-wall-calculator-v12';
 var fixedInputIds=['modulesH','modulesV','wallMetersH','wallMetersV','mixedWallW','mixedWallH','moduleMmH','moduleMmV','pixelsH','pixelsV','preset'];
 function snapshot(){
 var values={};
@@ -353,12 +354,20 @@ return {values:values,rows:rows.map(function(r){return Object.assign({},r)}),col
 }
 function signature(state){return JSON.stringify(state)}
 function historyButtons(){el('undoButton').disabled=historyPast.length===0;el('redoButton').disabled=historyFuture.length===0}
+function saveState(){
+try{localStorage.setItem(STORAGE_KEY,JSON.stringify({version:12,current:snapshot(),past:historyPast,future:historyFuture}))}
+catch(e){el('saveStatus').textContent='Lokales Speichern ist in diesem Browser nicht verfügbar.'}
+}
 function restore(state){
+if(!state||!state.values||!Array.isArray(state.rows)||!Array.isArray(state.cols))return;
 isRestoring=true;
-fixedInputIds.forEach(function(id){el(id).value=state.values[id]});
+fixedInputIds.forEach(function(id){if(state.values[id]!==undefined)el(id).value=state.values[id]});
 rows=state.rows.map(function(r){return Object.assign({},r)});
 cols=state.cols.map(function(c){return Object.assign({},c)});
-mode=state.mode;axis=state.axis;selectedRow=state.selectedRow;selectedCol=state.selectedCol;
+mode=['count','meters','mixed'].includes(state.mode)?state.mode:'count';
+axis=state.axis==='cols'?'cols':'rows';
+selectedRow=Number.isInteger(state.selectedRow)?state.selectedRow:-1;
+selectedCol=Number.isInteger(state.selectedCol)?state.selectedCol:-1;
 renderRowEditor();renderColEditor();
 el('countInputs').classList.toggle('hidden',mode!=='count');
 el('meterInputs').classList.toggle('hidden',mode!=='meters');
@@ -371,13 +380,30 @@ el('axisRows').classList.toggle('active',axis==='rows');
 el('axisCols').classList.toggle('active',axis==='cols');
 calculate();isRestoring=false;historyButtons()
 }
+function commitChange(key,category){
+if(isRestoring)return;
+var current=snapshot(),sig=signature(current);
+if(stableState===null){stableState=current;return}
+if(sig===signature(stableState))return;
+var now=Date.now();
+if(!(category==='input'&&lastEdit&&lastEdit.category==='input'&&lastEdit.key===key&&now-lastEdit.at<1600)){
+historyPast.push(stableState);if(historyPast.length>100)historyPast.shift()
+}
+historyFuture.length=0;
+lastEdit={key:key,category:category,at:now};
+stableState=current;historyButtons();saveState()
+}
 function undo(){
 if(!historyPast.length)return;
-historyFuture.push(snapshot());restore(historyPast.pop());lastEdit=null
+historyFuture.push(snapshot());
+restore(historyPast.pop());
+stableState=snapshot();lastEdit=null;saveState()
 }
 function redo(){
 if(!historyFuture.length)return;
-historyPast.push(snapshot());restore(historyFuture.pop());lastEdit=null
+historyPast.push(snapshot());
+restore(historyFuture.pop());
+stableState=snapshot();lastEdit=null;saveState()
 }
 el('undoButton').addEventListener('click',undo);
 el('redoButton').addEventListener('click',redo);
@@ -386,24 +412,29 @@ if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='z'){
 event.preventDefault();if(event.shiftKey)redo();else undo()
 }
 });
-function startRecord(event){
+function trackEvent(event){
 if(isRestoring||event.target.closest('.history-controls'))return;
 if(event.type==='click'&&!event.target.closest('button'))return;
-var prior=snapshot(),priorSignature=signature(prior),target=event.target;
-var targetKey=target.id||target.getAttribute('data-row')||target.getAttribute('data-col')||'control';
+var target=event.target;
+var key=target.id||target.getAttribute('data-row')||target.getAttribute('data-col')||'control';
 var category=event.type==='input'?'input':'other';
-queueMicrotask(function(){
-if(isRestoring||priorSignature===signature(snapshot()))return;
-var now=Date.now();
-if(!(category==='input'&&lastEdit&&lastEdit.category==='input'&&lastEdit.key===targetKey&&now-lastEdit.at<1400)){
-historyPast.push(prior);if(historyPast.length>100)historyPast.shift()
+// Listener läuft nach den normalen Eingabe-Handlern: der letzte stabile Stand
+// enthält noch die Werte VOR dieser Änderung, auch bei direkt editierten Inputs.
+queueMicrotask(function(){commitChange(key,category)})
 }
-historyFuture.length=0;lastEdit={category:category,key:targetKey,at:now};
-historyButtons()
-})
-}
-document.addEventListener('input',startRecord,true);
-document.addEventListener('change',startRecord,true);
-document.addEventListener('click',startRecord,true);
-initRows();calculate();historyButtons();
+document.addEventListener('input',trackEvent,false);
+document.addEventListener('change',trackEvent,false);
+document.addEventListener('click',trackEvent,false);
+window.addEventListener('pagehide',saveState);
+initRows();
+try{
+var saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+if(saved&&saved.version===12&&saved.current){
+historyPast=Array.isArray(saved.past)?saved.past.slice(-100):[];
+historyFuture=Array.isArray(saved.future)?saved.future.slice(-100):[];
+restore(saved.current);
+el('saveStatus').textContent='Letzter Stand lokal wiederhergestellt.';
+}else{calculate()}
+}catch(e){calculate();el('saveStatus').textContent='Lokaler Stand konnte nicht geladen werden.'}
+stableState=snapshot();historyButtons();saveState();
 })();</script></body></html>
